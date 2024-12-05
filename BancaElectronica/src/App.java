@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 
 public class App {
@@ -44,7 +45,6 @@ public class App {
         System.out.print("Ingrese su contraseña: ");
         String contrasena = scanner.nextLine();
 
-        // Validar si el correo ya existe
         for (Usuario usuario : usuarios) {
             if (usuario.getCorreo().equalsIgnoreCase(correo)) {
                 System.out.println("Error: El correo ya está registrado.");
@@ -52,7 +52,6 @@ public class App {
             }
         }
 
-        // Registrar nuevo usuario
         usuarios.add(new Usuario(nombre, correo, contrasena));
         System.out.println("¡Registro exitoso! Puede iniciar sesión ahora.");
     }
@@ -83,7 +82,8 @@ public class App {
             System.out.println("2. Consultar Saldo");
             System.out.println("3. Depositar Dinero");
             System.out.println("4. Retirar Dinero");
-            System.out.println("5. Salir");
+            System.out.println("5. Realizar Transferencia");
+            System.out.println("6. Salir");
             System.out.print("Seleccione una opción: ");
             int opcion = scanner.nextInt();
             scanner.nextLine(); // Limpiar buffer
@@ -102,6 +102,9 @@ public class App {
                     retirarDinero(usuario);
                     break;
                 case 5:
+                    realizarTransferencia(usuario);
+                    break;
+                case 6:
                     gestionandoCuentas = false;
                     break;
                 default:
@@ -164,6 +167,46 @@ public class App {
                 System.out.println("Retiro realizado con éxito. Nuevo saldo: " + cuenta.getSaldo());
             } else {
                 System.out.println("Fondos insuficientes o monto no válido.");
+            }
+        }
+    }
+
+    private static void realizarTransferencia(Usuario usuario) {
+        System.out.println("\nRealizar Transferencia:");
+        Cuenta origen = buscarCuenta(usuario);
+        if (origen != null) {
+            System.out.print("Ingrese el número de cuenta destino: ");
+            String numeroCuentaDestino = scanner.nextLine();
+            Cuenta destino = null;
+
+            for (Usuario u : usuarios) {
+                for (Cuenta c : u.getCuentas()) {
+                    if (c.getNumeroCuenta().equals(numeroCuentaDestino)) {
+                        destino = c;
+                        break;
+                    }
+                }
+            }
+
+            if (destino != null) {
+                System.out.print("Ingrese el monto a transferir: ");
+                double monto = scanner.nextDouble();
+
+                if (origen.retirar(monto)) {
+                    destino.depositar(monto);
+                    System.out.println("Transferencia realizada exitosamente.");
+                    Transferencia transferencia = new Transferencia(
+                        "T-" + new Date().getTime(), monto
+                    );
+                    System.out.println("Detalles de la transferencia:");
+                    System.out.println("ID: " + transferencia.getId());
+                    System.out.println("Fecha: " + transferencia.getFecha());
+                    System.out.println("Monto: " + transferencia.getMonto());
+                } else {
+                    System.out.println("Fondos insuficientes para la transferencia.");
+                }
+            } else {
+                System.out.println("Cuenta destino no encontrada.");
             }
         }
     }
